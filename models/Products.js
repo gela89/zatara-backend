@@ -1,7 +1,12 @@
 const mongoose = require('mongoose');
 
+// სქემა
 const productSchema = new mongoose.Schema({
-   id:{type: Number, required: true, unique: true},
+  id: { 
+    type: Number, 
+    unique: true, 
+    default: () => Math.floor(Date.now() / 1000) // უნიკალური რიცხვი წამებში
+  },
   title: { type: String, required: true },
   img: { type: String, required: true },
   category: { type: String, required: true },
@@ -18,6 +23,7 @@ const productSchema = new mongoose.Schema({
   },
 });
 
+// მოდელი
 const Product = mongoose.model('Product', productSchema);
 
 module.exports = Product;
