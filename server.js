@@ -44,7 +44,7 @@ app.post('/api/products', async (req, res) => {
   }
 });
 
-// 3️⃣ ერთი პროდუქტის წამოღება ID-ით (შესწორებული)
+// ერთი პროდუქტის წამოღება ID-ით
 app.get('/api/products/:id', async (req, res) => {
     try {
         const productId = parseInt(req.params.id, 10);
@@ -53,7 +53,7 @@ app.get('/api/products/:id', async (req, res) => {
             return res.status(400).json({ message: 'Invalid Product ID format: ID must be a number.' });
         }
 
-        const product = await Product.findOne({ id: productId }); // იპოვეთ თქვენი 'id' ველით
+        const product = await Product.findOne({ id: productId });
 
         if (!product) {
             return res.status(404).json({ message: 'Product not found with ID: ' + productId });
@@ -65,7 +65,7 @@ app.get('/api/products/:id', async (req, res) => {
     }
 });
 
-// 4️⃣ პროდუქტის განახლება ID-ით (შესწორებული)
+// პროდუქტის განახლება PUT-ით (სრული ჩანაცვლება)
 app.put('/api/products/:id', async (req, res) => {
     try {
         const productId = parseInt(req.params.id, 10);
@@ -74,8 +74,8 @@ app.put('/api/products/:id', async (req, res) => {
             return res.status(400).json({ message: 'Invalid Product ID format: ID must be a number.' });
         }
 
-        const updatedProduct = await Product.findOneAndUpdate( // გამოიყენეთ findOneAndUpdate
-            { id: productId }, // მოძებნეთ თქვენი 'id' ველით
+        const updatedProduct = await Product.findOneAndUpdate(
+            { id: productId },
             req.body,
             { new: true, runValidators: true }
         );
@@ -91,7 +91,33 @@ app.put('/api/products/:id', async (req, res) => {
     }
 });
 
-// 5️⃣ პროდუქტის წაშლა ID-ით (უკვე შესწორებული იყო)
+// პროდუქტის ნაწილობრივი განახლება PATCH-ით
+app.patch('/api/products/:id', async (req, res) => {
+    try {
+        const productId = parseInt(req.params.id, 10);
+
+        if (isNaN(productId)) {
+            return res.status(400).json({ message: 'Invalid Product ID format: ID must be a number.' });
+        }
+
+        const updatedProduct = await Product.findOneAndUpdate(
+            { id: productId },
+            { $set: req.body }, // მხოლოდ ის ველები განახლდება, რაც Body-შია
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedProduct) {
+            return res.status(404).json({ message: 'Product not found with ID: ' + productId });
+        }
+
+        res.json(updatedProduct);
+    } catch (error) {
+        console.error('Error patching product:', error);
+        res.status(500).json({ message: 'Internal Server Error', details: error.message });
+    }
+});
+
+// პროდუქტის წაშლა
 app.delete('/api/products/:id', async (req, res) => {
     try {
         const productId = parseInt(req.params.id, 10);
@@ -112,7 +138,6 @@ app.delete('/api/products/:id', async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', details: error.message });
     }
 });
-
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
